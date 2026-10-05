@@ -60,6 +60,8 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
   <p class="tienda">Tienda Demo Santa Marta</p>
   <h1>Confirmar pedido</h1>
 
+  <p class="ayuda" id="cargando" style="display:none">Cargando pedido…</p>
+
   <section id="s1">
     <p class="paso">1. Pega el pedido del cliente</p>
     <textarea id="txt" placeholder="En WhatsApp, deja presionado el mensaje del cliente, toca Copiar y pégalo aquí."></textarea>
@@ -168,6 +170,7 @@ function gramos(k){const g=Math.round(k*500);return g>=1000?(g/1000).toLocaleStr
   const q=new URLSearchParams(location.search); const p=q.get("p")||"";
   if(!p) return;
   if(!/^[A-Za-z0-9_]+-[\d.]+/.test(p)){ $("#txt").value=p; $("#leer").click(); return; }
+  $("#s1").classList.add("oculto"); $("#cargando").style.display="block";
   try{
     await new Promise((ok,mal)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";s.onload=ok;s.onerror=mal;document.head.appendChild(s);});
     const r=await fetch("catalogo-tiendas.xlsx",{cache:"no-store"}); const wb=XLSX.read(await r.arrayBuffer(),{type:"array"});
@@ -184,9 +187,10 @@ function gramos(k){const g=Math.round(k*500);return g>=1000?(g/1000).toLocaleStr
       const txt=peso?`${palabras(k)} (${gramos(k)}) de ${nom}`:`${k} × ${nom}${pres?" ("+pres+")":""}`;
       return {txt, v:Math.round(precio*k), est:"hay", alt:"", altV:""};
     }).filter(Boolean);
-    if(!L.length) return;
-    $("#s1").classList.add("oculto"); $("#s2").classList.remove("oculto"); pintarItems(); calcular();
-  }catch(e){ $("#err").textContent="No pude cargar el pedido desde el enlace. Puedes pegarlo aquí."; }
+    $("#cargando").style.display="none";
+    if(!L.length){ $("#s1").classList.remove("oculto"); return; }
+    $("#s2").classList.remove("oculto"); pintarItems(); calcular();
+  }catch(e){ $("#cargando").style.display="none"; $("#s1").classList.remove("oculto"); $("#err").textContent="No pude cargar el pedido desde el enlace. Puedes pegarlo aquí."; }
 })();
 </script>
 </body>
