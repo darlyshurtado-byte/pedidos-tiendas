@@ -19,33 +19,37 @@
 :root[data-theme="dark"]{ --mar:#7FC4D4; --papel:#1B2427; --tinta:#EEF3F3; --cielo:#22343A; --gris:#A2B1B4; --linea:#2F4248; --verde:#3DBE72; --rojo:#E57364; --fondo:#131B1D; }
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--fondo);color:var(--tinta);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.4}
+body{background:var(--fondo);color:var(--tinta);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.35}
 .wrap{max-width:560px;margin:0 auto;padding:20px 16px 40px}
-.tienda{font-size:15px;color:var(--gris);margin:0}
-h1{font-size:30px;line-height:1.1;font-weight:800;margin:4px 0 14px;color:var(--mar);letter-spacing:-0.02em}
-.paso{font-weight:800;color:var(--mar);margin:18px 0 6px}
+.tienda{font-size:13px;color:var(--gris);margin:0}
+h1{font-size:22px;line-height:1.1;font-weight:800;margin:2px 0 8px;color:var(--mar);letter-spacing:-0.02em}
+.paso{font-weight:800;color:var(--mar);margin:14px 0 4px;font-size:14px}
 textarea{width:100%;min-height:130px;border:3px solid var(--mar);border-radius:16px;padding:12px;font:inherit;font-size:16px;background:var(--papel);color:var(--tinta);resize:vertical}
 .ayuda{font-size:14px;color:var(--gris);margin:6px 2px 0}
 .btn{border:0;border-radius:14px;font:inherit;font-weight:800;cursor:pointer;padding:13px 16px}
-.prim{background:var(--mar);color:var(--papel);width:100%;margin-top:10px;font-size:17px}
-.verde{background:var(--verde);color:#fff;width:100%;font-size:18px;display:block;text-align:center;text-decoration:none}
+.prim{background:var(--mar);color:var(--papel);width:100%;margin-top:10px;font-size:15px}
+.verde{background:var(--verde);color:#fff;width:100%;font-size:16px;display:block;text-align:center;text-decoration:none}
 .sec{background:var(--cielo);color:var(--tinta);width:100%;margin-top:8px}
-.item{background:var(--papel);border:1px solid var(--linea);border-radius:16px;padding:12px;margin-top:10px}
-.item .nom{font-weight:600}
-.item .val{font-weight:800}
-.ops{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.op{flex:1;min-width:90px;border:2px solid var(--linea);background:var(--papel);color:var(--tinta);border-radius:12px;padding:9px 6px;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.item{background:var(--papel);border:1px solid var(--linea);border-radius:12px;padding:8px 10px;margin-top:6px}
+.item .fila{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.item .nom{font-weight:600;font-size:14px}
+.item .val{font-weight:800;font-size:14px;white-space:nowrap}
+.ops{display:flex;gap:6px;margin-top:6px}
+.op{flex:1;border:1.5px solid var(--linea);background:var(--papel);color:var(--tinta);border-radius:10px;padding:6px 4px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .op[aria-pressed="true"].hay{border-color:var(--verde);background:var(--verde);color:#fff}
 .op[aria-pressed="true"].nohay{border-color:var(--rojo);background:var(--rojo);color:#fff}
 .op[aria-pressed="true"].otra{border-color:var(--mango);background:var(--mango);color:#1C2321}
-.alt{display:none;margin-top:8px;gap:6px;flex-direction:column}
+.alt{display:none;margin-top:6px;gap:6px}
+.alt input[data-k="altV"]{max-width:110px}
 .alt.on{display:flex}
-.alt input,.dom input{border:2px solid var(--linea);border-radius:12px;padding:10px;font:inherit;font-size:16px;background:var(--papel);color:var(--tinta);width:100%}
+.alt input,.dom input{border:1.5px solid var(--linea);border-radius:10px;padding:8px;font:inherit;font-size:16px;background:var(--papel);color:var(--tinta);width:100%}
 .dom{display:flex;align-items:center;gap:10px;margin-top:6px}
 .dom span{font-weight:800}
-.resumen{background:var(--papel);border:2px dashed var(--mar);border-radius:16px;padding:12px;margin-top:12px;white-space:pre-wrap;font-size:15px}
-.total{display:flex;justify-content:space-between;align-items:baseline;margin:14px 2px 10px}
-.total b{font-size:24px}
+.resumen{background:var(--papel);border:1px dashed var(--linea);border-radius:10px;padding:10px;margin-top:6px;white-space:pre-wrap;font-size:13px;color:var(--gris)}
+.ver{margin-top:8px;font-size:13px;color:var(--mar)}
+.ver summary{cursor:pointer;font-weight:600;text-align:center;padding:4px}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin:12px 2px 10px;font-weight:600}
+.total b{font-size:20px}
 .error{color:var(--rojo);font-size:15px;margin-top:8px}
 .oculto{display:none}
 button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--mango);outline-offset:2px}
@@ -64,18 +68,16 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
   </section>
 
   <section id="s2" class="oculto">
-    <p class="paso">2. Marca lo que tienes</p>
+    <p class="paso">Marca lo que tienes</p>
     <div id="items"></div>
 
-    <p class="paso">3. Valor del domicilio</p>
+    <p class="paso">Domicilio</p>
     <div class="dom"><span>$</span><input id="dom" inputmode="numeric" placeholder="Ej. 3000"></div>
 
     <div class="total"><span>Total para el cliente</span><b id="tot">$0</b></div>
 
-    <p class="paso">4. Responde al cliente</p>
-    <div class="resumen" id="msg"></div>
-    <p class="ayuda">Al tocar el botón, WhatsApp te pide escoger el chat del cliente.</p>
-    <a class="btn verde" id="enviar" href="#" target="_blank" rel="noopener" style="margin-top:10px">Responder al cliente por WhatsApp</a>
+    <a class="btn verde" id="enviar" href="#" target="_blank" rel="noopener">Responder al cliente por WhatsApp</a>
+    <details class="ver"><summary>Ver mensaje</summary><div class="resumen" id="msg"></div></details>
     <button class="btn sec" id="otro" type="button">Revisar otro pedido</button>
   </section>
 </div>
@@ -99,37 +101,35 @@ function leer(texto){
 function pintarItems(){
   $("#items").innerHTML=L.map((x,i)=>`
     <div class="item">
-      <div class="nom">${esc(x.txt)}</div>
-      <div class="val">${plata(x.v)}</div>
+      <div class="fila"><span class="nom">${esc(x.txt)}</span><span class="val">${plata(x.v)}</span></div>
       <div class="ops" role="group" aria-label="Disponibilidad">
         <button class="op hay" type="button" data-i="${i}" data-e="hay" aria-pressed="${x.est==="hay"}">✅ Hay</button>
         <button class="op nohay" type="button" data-i="${i}" data-e="nohay" aria-pressed="${x.est==="nohay"}">❌ No hay</button>
         <button class="op otra" type="button" data-i="${i}" data-e="otra" aria-pressed="${x.est==="otra"}">🔄 Otra</button>
       </div>
       <div class="alt ${x.est==="otra"?"on":""}">
-        <input data-i="${i}" data-k="alt" placeholder="Solo el producto. Ej. Arroz Pinillar 1 libra" value="${esc(x.alt)}">
-        <input data-i="${i}" data-k="altV" inputmode="numeric" placeholder="Valor de esa línea. Ej. 8000" value="${esc(x.altV)}">
+        <input data-i="${i}" data-k="alt" placeholder="Producto. Ej. Arroz Pinillar 1 lb" value="${esc(x.alt)}">
+        <input data-i="${i}" data-k="altV" inputmode="numeric" placeholder="Valor" value="${esc(x.altV)}">
       </div>
     </div>`).join("");
 }
 
 function calcular(){
   const dom=num($("#dom").value);
-  let total=0; const lineas=[];
+  let total=0; const obs=[];
   L.forEach(x=>{
-    if(x.est==="hay"){ total+=x.v; lineas.push(`✅ ${x.txt} = ${plata(x.v)}`); }
-    else if(x.est==="nohay"){ lineas.push(`❌ ${x.txt}: no hay`); }
+    if(x.est==="hay"){ total+=x.v; }
+    else if(x.est==="nohay"){ obs.push(`❌ ${x.txt}: no hay`); }
     else {
       const v=num(x.altV); total+=v;
-      lineas.push(`🔄 ${x.txt}: no hay. Opción: ${x.alt||"otra presentación"}${v?` = ${plata(v)}`:""}. ¿Te sirve?`);
+      obs.push(`🔄 ${x.txt}: no hay, pero tengo ${x.alt||"otra presentación"}${v?` = ${plata(v)}`:""}. ¿Te sirve?`);
     }
   });
   total+=dom;
-  const hayCambio=L.some(x=>x.est==="otra");
-  const msg="¡Hola! Revisamos tu pedido:\n"+lineas.join("\n")+
-    (dom?`\nDomicilio = ${plata(dom)}`:"")+
-    `\n\nTotal: ${plata(total)}`+(hayCambio?"\n(el total incluye las opciones que te ofrezco)":"")+
-    "\n\n¿Lo confirmamos? ¿Pagas en efectivo o por transferencia?";
+  const pie=(dom?`Domicilio: ${plata(dom)}\n`:"")+`Total: ${plata(total)}`;
+  const msg=obs.length
+    ? "¡Hola! Revisamos tu pedido. Esto tiene cambios:\n"+obs.join("\n")+"\n\nLo demás sí lo tenemos ✅\n"+pie+"\n\n¿Lo confirmamos? ¿Pagas en efectivo o por transferencia?"
+    : "¡Hola! Tu pedido está confirmado ✅\n"+pie+"\n\n¿Pagas en efectivo o por transferencia?";
   $("#tot").textContent=plata(total);
   $("#msg").textContent=msg;
   $("#enviar").href="https://wa.me/?text="+encodeURIComponent(msg);
