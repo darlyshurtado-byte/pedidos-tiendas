@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tienda Demo Santa Marta: haz tu pedido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style id="estilos">
+:root{
+  --mar:#0F4C5C; --mango:#F2B705; --papel:#FFFFFF; --tinta:#1C2321;
+  --cielo:#E6F0F1; --gris:#5E6B6E; --linea:#D5E1E3; --verde:#1E8E4E;
+  --fondo:#F7FAFA;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --mar:#7FC4D4; --mango:#F2B705; --papel:#1B2427; --tinta:#EEF3F3;
+    --cielo:#22343A; --gris:#A2B1B4; --linea:#2F4248; --verde:#3DBE72; --fondo:#131B1D;
+  }
+}
+:root[data-theme="dark"]{
+  --mar:#7FC4D4; --mango:#F2B705; --papel:#1B2427; --tinta:#EEF3F3;
+  --cielo:#22343A; --gris:#A2B1B4; --linea:#2F4248; --verde:#3DBE72; --fondo:#131B1D;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--fondo);color:var(--tinta);
+  font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:17px;line-height:1.4;-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 260px}
+header{padding:22px 0 6px}
+.tienda{font-size:15px;color:var(--gris);margin:0}
+h1{font-size:34px;line-height:1.05;font-weight:800;margin:4px 0 0;color:var(--mar);letter-spacing:-0.02em}
+.buscar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--fondo);padding:14px 0 10px}
+.caja{display:flex;align-items:center;gap:10px;background:var(--papel);border:3px solid var(--mar);
+  border-radius:18px;padding:4px 8px 4px 16px}
+.caja svg{flex:none;color:var(--mar)}
+#q{flex:1;border:0;outline:0;background:transparent;color:var(--tinta);font:inherit;font-size:22px;font-weight:600;padding:12px 0;min-width:0}
+#q::placeholder{color:var(--gris);font-weight:400}
+#limpiar{border:0;background:var(--cielo);color:var(--tinta);border-radius:12px;font:inherit;font-size:15px;padding:8px 12px;cursor:pointer;display:none}
+.pista{font-size:14px;color:var(--gris);margin:8px 2px 0}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex:none;border:1.5px solid var(--linea);background:var(--papel);color:var(--tinta);border-radius:999px;
+  padding:7px 14px;font:inherit;font-size:15px;cursor:pointer}
+.cat[aria-pressed="true"]{background:var(--mar);border-color:var(--mar);color:var(--papel)}
+ul{list-style:none;margin:0;padding:0}
+li.prod{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--linea)}
+.ico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--cielo);display:grid;place-items:center;font-size:24px}
+.info{flex:1;min-width:0}
+.nom{font-weight:600;margin:0}
+.nom mark{background:var(--mango);color:#1C2321;border-radius:3px;padding:0 1px}
+.det{font-size:14px;color:var(--gris);margin:1px 0 0}
+.precio{font-weight:800;font-size:16px;margin-top:2px}
+.ctrl{flex:none;display:flex;align-items:center;gap:6px}
+.btn{min-width:40px;padding:0 8px;height:40px;border-radius:12px;border:0;font:inherit;font-size:22px;font-weight:800;cursor:pointer;display:grid;place-items:center}
+.mas{background:var(--mar);color:var(--papel)}
+.menos{background:var(--cielo);color:var(--tinta)}
+.cant{min-width:22px;white-space:nowrap;text-align:center;font-weight:800}
+.pidio{margin:4px 0 0;font-size:15px;color:var(--tinta)}
+.pista2{margin:4px 0 0;font-size:13px;color:var(--gris)}
+.vacio{padding:36px 8px;text-align:center;color:var(--gris)}
+.vacio b{color:var(--tinta)}
+.barra{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--papel);border-top:1px solid var(--linea);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));transform:translateY(110%);transition:transform .25s ease}
+.barra.on{transform:none}
+.barra-in{max-width:560px;margin:0 auto}
+.resumen{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;cursor:pointer}
+.resumen span{background:var(--cielo);color:var(--tinta);font-size:15px;font-weight:600;border-radius:10px;padding:7px 12px}
+.total{font-size:22px;font-weight:800}
+.enviar{display:block;text-align:center;text-decoration:none;width:100%;border:0;border-radius:16px;background:var(--verde);color:#fff;font:inherit;font-size:18px;font-weight:800;padding:15px;cursor:pointer}
+.copiar{display:block;width:100%;margin-top:8px;border:1.5px solid var(--linea);border-radius:14px;background:var(--papel);color:var(--tinta);font:inherit;font-size:16px;font-weight:600;padding:11px;cursor:pointer}
+.lista{display:none;max-height:40vh;overflow:auto;margin:0 0 10px;border-top:1px dashed var(--linea);padding-top:8px}
+.lista.on{display:block}
+.lista li{display:flex;align-items:center;gap:8px;font-size:15px;padding:6px 0;border-bottom:1px solid var(--linea)}
+.lista li .t{flex:1}
+.lista li .b2{width:32px;height:32px;border-radius:10px;border:0;font:inherit;font-size:18px;font-weight:800;cursor:pointer;background:var(--cielo);color:var(--tinta)}
+.lista li .b2.m{background:var(--mar);color:var(--papel)}
+.nota{font-size:13px;color:var(--gris);text-align:center;margin:8px 0 0}
+button:focus-visible,#q:focus-visible{outline:3px solid var(--mango);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.barra{transition:none}}
+
+.admin{margin:18px 0 0;padding:14px;border:2px dashed var(--mar);border-radius:16px;background:var(--papel)}
+.admin h2{font-size:17px;margin:0 0 4px;color:var(--mar)}
+.admin p{font-size:14px;color:var(--gris);margin:0 0 10px}
+.admin label.subir{display:inline-block;background:var(--mar);color:var(--papel);border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}
+.admin input[type=file]{display:none}
+.admin .res{font-size:15px;color:var(--tinta);margin-top:10px}
+.admin .res ul{margin:6px 0 0 18px;padding:0;list-style:disc}
+.admin .res li{border:0;padding:0}
+.admin .acc{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.admin .acc button{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}
+.admin .ok{background:var(--verde);color:#fff}
+.admin .no{background:var(--cielo);color:var(--tinta)}
+
+.extra{display:none;max-height:55vh;overflow:auto;margin-bottom:10px}
+.extra.on{display:block}
+.extra .lista{display:block;max-height:none;margin:0}
+.extra .copiar{margin-top:10px}
+.barra .resumen{margin-bottom:8px}
+.enviar{padding:13px}
+body.escribiendo .barra{transform:translateY(110%)}
+#cuenta{display:inline-flex;align-items:center;gap:6px}
+#cuenta .badge{background:var(--mango);color:#1C2321;border-radius:999px;min-width:22px;height:22px;display:inline-grid;place-items:center;font-size:13px;padding:0 6px}
+
+.carro{position:relative;flex:none;
+  width:52px;height:52px;border-radius:16px;border:0;background:var(--mar);color:var(--papel);display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.carro .badge{position:absolute;top:-6px;right:-6px;min-width:24px;height:24px;border-radius:12px;background:var(--mango);color:#1C2321;
+  font-size:14px;font-weight:800;display:grid;place-items:center;padding:0 6px;border:2px solid var(--fondo)}
+.carro .badge.cero{display:none}
+.carro.salta{animation:salta .35s ease}
+@keyframes salta{40%{transform:scale(1.15)}}
+@media (prefers-reduced-motion:reduce){.carro.salta{animation:none}}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.pista:empty{display:none}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script id="principal" type="text/plain">
+const TEL = "573122089299";
+const CONFIRMAR = "https://darlyshurtado-byte.github.io/pedidos-tiendas/confirmar.html";
+const BODY = "\n<div class=\"wrap\">\n  <header><div class=\"tit\">\n    <p class=\"tienda\">Tienda Demo Santa Marta</p>\n    <h1>¿Qué necesitas hoy?</h1>\n  </div><button class=\"carro\" id=\"carro\" type=\"button\" aria-label=\"Ver pedido\">\n  <svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"9\" cy=\"20\" r=\"1.4\"/><circle cx=\"18\" cy=\"20\" r=\"1.4\"/><path d=\"M2.5 3.5h3l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.1l1.7-6.8H6.6\"/></svg>\n  <span class=\"badge\" id=\"badge\">0</span>\n</button></header>\n\n  <div class=\"buscar\">\n    <div class=\"caja\">\n      <svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m20 20-3.5-3.5\"/></svg>\n      <input id=\"q\" type=\"search\" placeholder=\"Escribe: leche, aceite, arroz…\" autocomplete=\"off\" aria-label=\"Buscar producto\">\n      <button id=\"limpiar\" type=\"button\">Borrar</button>\n    </div>\n    <p class=\"pista\" id=\"pista\"></p>\n  </div>\n\n  <div class=\"cats\" id=\"cats\" role=\"group\" aria-label=\"Categorías\"></div>\n  <ul id=\"lista\"></ul>\n  <div id=\"adminZona\"></div>\n</div>\n\n<div class=\"barra\" id=\"barra\">\n  <div class=\"barra-in\">\n    <div class=\"extra\" id=\"extra\">\n      <ul class=\"lista\" id=\"carrito\"></ul>\n      <p class=\"nota\">La tienda te confirma el pedido por WhatsApp.</p>\n    </div>\n    <div class=\"resumen\" id=\"resumen\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">\n      <span id=\"cuenta\">Ver pedido</span>\n      <div class=\"total\" id=\"total\">$0</div>\n    </div>\n    <a class=\"enviar\" id=\"enviar\" href=\"#\" target=\"_blank\" rel=\"noopener\">Enviar pedido por WhatsApp</a>\n  </div>\n</div>";
+document.getElementById("app").innerHTML = BODY;
+const RAW = window.RAW || [];
+const LINEAS=["Lácteos","Despensa","Bebidas","Aseo","Panadería","Fruver","Carnes","Snacks"];
+const ICON={"lacteos":"🥛","despensa":"🥫","bebidas":"🥤","aseo":"🧼","panaderia":"🍞","fruver":"🍅","carnes":"🥩","snacks":"🍿"};
+const MED={"gr":"g","grs":"g","gramos":"g","lt":"litro","litros":"litro","libras":"libra","kgs":"kg"};
+const nrm0=s=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+function armar(r,i){
+  const med=MED[nrm0(r.medida)]||String(r.medida||"").toLowerCase().trim();
+  const lin0=String(r.linea||"").trim();
+  const lin=LINEAS.find(l=>nrm0(l)===nrm0(lin0))||cap(lin0)||"Otros";
+  const granel=nrm0(r.empaque)==="granel";
+  const det=granel?"Precio por libra":[cap(String(r.empaque||"").toLowerCase().trim()),r.contenido,med].filter(Boolean).join(" ");
+  return {id:i,cod:r.codigo||"",n:cap(String(r.producto).trim()),m:r.marca?cap(String(r.marca).trim()):"",d:det,c:lin,v:Number(r.precio)||0,e:ICON[nrm0(lin)]||"🛒",g:granel};
+}
+const P = RAW.map(armar);
+const cats=["Todo",...new Set(P.map(p=>p.c))];
+let cat="Todo", q="", cart={};
+const $=s=>document.querySelector(s);
+const norm=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+const plata=v=>"$"+v.toLocaleString("es-CO");
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function fr(k){
+  const e=Math.floor(k), r=Math.round((k-e)*4), f=["","¼","½","¾"][r];
+  return (e?e+(f?" ":""):"")+f;
+}
+function palabras(k){
+  const e=Math.floor(k), r=Math.round((k-e)*4);
+  if(!e) return ["","un cuarto de libra","media libra","tres cuartos de libra"][r];
+  const base=e===1?"1 libra":e+" libras";
+  return base+["",", y cuarto"," y media"," y tres cuartos"][r].replace(", y"," y");
+}
+function gramos(k){ const g=Math.round(k*500); return g>=1000?(g/1000).toLocaleString("es-CO")+" kg":g+" g"; }
+function qtyTxt(p,k){
+  if(!p.g) return k+" ×";
+  return palabras(k)+" ("+gramos(k)+") de";
+}
+function marcar(txt,words){
+  if(!words.length) return esc(txt);
+  const n=norm(txt); let marks=[];
+  words.forEach(w=>{let i=n.indexOf(w); if(i>-1) marks.push([i,i+w.length]);});
+  marks.sort((a,b)=>a[0]-b[0]); let out="",pos=0;
+  marks.forEach(([a,b])=>{ if(a<pos) return; out+=esc(txt.slice(pos,a))+"<mark>"+esc(txt.slice(a,b))+"</mark>"; pos=b;});
+  return out+esc(txt.slice(pos));
+}
+
+function pintarCats(){
+  $("#cats").innerHTML=cats.map(c=>`<button class="cat" type="button" aria-pressed="${c===cat}" data-c="${c}">${c}</button>`).join("");
+}
+
+function pintar(){
+  const words=norm(q).split(/\s+/).filter(Boolean);
+  const res=P.filter(p=>{
+    if(cat!=="Todo" && p.c!==cat) return false;
+    const h=norm(p.n+" "+p.m+" "+p.d+" "+p.c);
+    return words.every(w=>h.includes(w));
+  });
+  $("#limpiar").style.display=q?"block":"none";
+  if(!res.length){
+    $("#lista").innerHTML=`<li class="vacio">No encontramos <b>“${esc(q)}”</b>.<br>Escríbelo igual en el chat y la tienda te dice si lo tiene.</li>`;
+    return;
+  }
+  $("#lista").innerHTML=res.map(p=>{
+    const k=cart[p.id]||0;
+    return `<li class="prod">
+      <div class="ico" aria-hidden="true">${p.e}</div>
+      <div class="info"><p class="nom">${marcar(p.n,words)}</p><p class="det">${p.m?esc(p.m)+", ":""}${esc(p.d)}</p><div class="precio">${plata(p.v)}</div>${p.g?(k?`<p class="pidio">Pediste: <b>${palabras(k)}</b> (${gramos(k)}) = ${plata(Math.round(p.v*k))}</p>`:`<p class="pista2">Cada + suma un cuarto de libra (125 g)</p>`):""}</div>
+      <div class="ctrl">
+        ${k?`<button class="btn menos" type="button" data-id="${p.id}" data-a="-1" aria-label="Quitar">−</button>${p.g?"":`<span class="cant">${k}</span>`}`:""}
+        <button class="btn mas" type="button" data-id="${p.id}" data-a="1" aria-label="Agregar ${esc(p.n)}">+</button>
+      </div></li>`;
+  }).join("");
+}
+
+function pintarBarra(){
+  const items=Object.entries(cart).filter(([,k])=>k>0);
+  const unidades=items.reduce((s,[id,k])=>s+(P[id].g?1:k),0);
+  const total=items.reduce((s,[id,k])=>s+Math.round(P[id].v*k),0);
+  $("#barra").classList.toggle("on",unidades>0);
+  const CARRO='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L22 7H6"/></svg>';
+  $("#cuenta").innerHTML=$("#extra").classList.contains("on")?CARRO+" Ocultar pedido":CARRO+` Ver pedido <b class="badge">${unidades}</b>`;
+  $("#total").textContent=plata(total);
+  const bd=$("#badge"); const prev=bd.textContent; bd.textContent=unidades; bd.classList.toggle("cero",!unidades);
+  if(String(unidades)!==prev && unidades){ const c=$("#carro"); c.classList.remove("salta"); void c.offsetWidth; c.classList.add("salta"); }
+  actualizarEnlace();
+  $("#carrito").innerHTML=items.map(([id,k])=>`<li><span class="t">${qtyTxt(P[id],k)} ${esc(P[id].n)}${P[id].m?" "+esc(P[id].m):""}${P[id].g?"":" ("+esc(P[id].d)+")"}</span><b>${plata(Math.round(P[id].v*k))}</b><button class="b2" type="button" data-id="${id}" data-a="-1" aria-label="Quitar">−</button><button class="b2 m" type="button" data-id="${id}" data-a="1" aria-label="Agregar">+</button></li>`).join("");
+}
+
+$("#q").addEventListener("input",e=>{q=e.target.value;pintar();});
+$("#q").addEventListener("focus",()=>{ if(window.innerHeight<700) document.body.classList.add("escribiendo"); });
+$("#q").addEventListener("blur",()=>document.body.classList.remove("escribiendo"));
+$("#q").addEventListener("keydown",e=>{ if(e.key==="Enter") e.target.blur(); });
+$("#limpiar").addEventListener("click",()=>{q="";$("#q").value="";pintar();$("#q").focus();});
+$("#cats").addEventListener("click",e=>{const b=e.target.closest(".cat"); if(!b) return; cat=b.dataset.c; pintarCats(); pintar();});
+$("#lista").addEventListener("click",e=>{
+  const b=e.target.closest(".btn"); if(!b) return;
+  const id=b.dataset.id; const st=P[id].g?0.25:1; cart[id]=Math.max(0,Math.round(((cart[id]||0)+Number(b.dataset.a)*st)*100)/100);
+  if(!cart[id]) delete cart[id];
+  pintar(); pintarBarra();
+});
+function toggleLista(){const l=$("#extra");l.classList.toggle("on");$("#resumen").setAttribute("aria-expanded",l.classList.contains("on"));pintarBarra();}
+$("#carrito").addEventListener("click",e=>{
+  const b=e.target.closest(".b2"); if(!b) return;
+  const id=b.dataset.id; const st=P[id].g?0.25:1; cart[id]=Math.max(0,Math.round(((cart[id]||0)+Number(b.dataset.a)*st)*100)/100);
+  if(!cart[id]) delete cart[id];
+  pintar(); pintarBarra();
+});
+$("#resumen").addEventListener("click",toggleLista);
+$("#carro").addEventListener("click",()=>{
+  if(!Object.keys(cart).length){ $("#q").focus(); $("#pista").textContent="Tu pedido está vacío. Busca un producto y toca +."; return; }
+  if(!$("#extra").classList.contains("on")) toggleLista();
+});
+$("#resumen").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleLista();}});
+function textoPedido(){
+  const base=textoBase();
+  return base+"\n\nPara la tienda, confirmar aquí: "+CONFIRMAR+"?p="+encodeURIComponent(base);
+}
+function textoBase(){
+  const items=Object.entries(cart).filter(([,k])=>k>0);
+  const total=items.reduce((s,[id,k])=>s+Math.round(P[id].v*k),0);
+  return "¡Hola! Quiero hacer este pedido:\n"+
+    items.map(([id,k])=>`• ${qtyTxt(P[id],k)} ${P[id].n}${P[id].m?" "+P[id].m:""}${P[id].g?"":" ("+P[id].d+")"} = ${plata(Math.round(P[id].v*k))}`).join("\n")+
+    `\n\nTotal${items.some(([id])=>P[id].g)?" estimado":""}: ${plata(total)}`;
+}
+function actualizarEnlace(){ $("#enviar").href="https://wa.me/"+TEL+"?text="+encodeURIComponent(textoPedido()); }
+
+pintarCats(); pintar(); pintarBarra();
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* Lee los productos del Excel catalogo-tiendas.xlsx que está en el repositorio */
+const nrmL=s=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+function objs(ws){return XLSX.utils.sheet_to_json(ws,{defval:""}).map(f=>{const o={};Object.keys(f).forEach(k=>{o[nrmL(k).replace(/\s+/g,"_")]=typeof f[k]==="string"?f[k].trim():f[k];});return o;});}
+function productosDeTienda(wb,tienda){
+  const hm=wb.SheetNames.find(n=>nrmL(n)==="maestro"); const M={};
+  objs(wb.Sheets[hm]).forEach(m=>{ if(m.codigo) M[String(m.codigo).toUpperCase()]=m; });
+  const out=[];
+  objs(wb.Sheets[tienda]).forEach(t=>{
+    if(!t.codigo) return; const m=M[String(t.codigo).toUpperCase()]; if(!m) return;
+    if(nrmL(t.disponible)==="no") return;
+    const precio=Math.round(Number(String(t.precio??"").replace(/[^0-9.]/g,""))); if(!precio) return;
+    const peso=nrmL(m.se_vende_por)==="peso";
+    out.push({codigo:String(m.codigo),producto:m.producto,marca:m.marca||"",empaque:peso?"Granel":m.empaque,
+      contenido:peso?"":String(m.contenido??""),medida:peso?"":m.medida,linea:m.linea,precio});
+  });
+  return out;
+}
+(async()=>{
+  const app=document.getElementById("app");
+  try{
+    const r=await fetch("catalogo-tiendas.xlsx",{cache:"no-store"});
+    if(!r.ok) throw new Error("No encontré catalogo-tiendas.xlsx");
+    const wb=XLSX.read(await r.arrayBuffer(),{type:"array"});
+    const pedida=new URLSearchParams(location.search).get("tienda");
+    const tiendas=wb.SheetNames.filter(n=>!["instrucciones","listas","maestro"].includes(nrmL(n)));
+    const hoja=tiendas.find(t=>nrmL(t)===nrmL(pedida))||tiendas[0];
+    window.RAW=productosDeTienda(wb,hoja); window.TIENDA=hoja;
+    const s=document.createElement("script"); s.textContent=document.getElementById("principal").textContent; document.body.appendChild(s);
+  }catch(e){ app.innerHTML='<p style="padding:24px;font-family:sans-serif">No se pudo cargar la lista de productos. '+e.message+'</p>'; }
+})();
+</script>
+</body>
+</html>

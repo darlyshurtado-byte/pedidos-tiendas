@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Confirmar pedido: Tienda Demo Santa Marta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mar:#0F4C5C; --mango:#F2B705; --papel:#FFFFFF; --tinta:#1C2321; --cielo:#E6F0F1; --gris:#5E6B6E;
+  --linea:#D5E1E3; --verde:#1E8E4E; --rojo:#C0392B; --fondo:#F7FAFA;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --mar:#7FC4D4; --papel:#1B2427; --tinta:#EEF3F3; --cielo:#22343A; --gris:#A2B1B4; --linea:#2F4248; --verde:#3DBE72; --rojo:#E57364; --fondo:#131B1D; }
+}
+:root[data-theme="dark"]{ --mar:#7FC4D4; --papel:#1B2427; --tinta:#EEF3F3; --cielo:#22343A; --gris:#A2B1B4; --linea:#2F4248; --verde:#3DBE72; --rojo:#E57364; --fondo:#131B1D; }
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--fondo);color:var(--tinta);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.4}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+.tienda{font-size:15px;color:var(--gris);margin:0}
+h1{font-size:30px;line-height:1.1;font-weight:800;margin:4px 0 14px;color:var(--mar);letter-spacing:-0.02em}
+.paso{font-weight:800;color:var(--mar);margin:18px 0 6px}
+textarea{width:100%;min-height:130px;border:3px solid var(--mar);border-radius:16px;padding:12px;font:inherit;font-size:16px;background:var(--papel);color:var(--tinta);resize:vertical}
+.ayuda{font-size:14px;color:var(--gris);margin:6px 2px 0}
+.btn{border:0;border-radius:14px;font:inherit;font-weight:800;cursor:pointer;padding:13px 16px}
+.prim{background:var(--mar);color:var(--papel);width:100%;margin-top:10px;font-size:17px}
+.verde{background:var(--verde);color:#fff;width:100%;font-size:18px;display:block;text-align:center;text-decoration:none}
+.sec{background:var(--cielo);color:var(--tinta);width:100%;margin-top:8px}
+.item{background:var(--papel);border:1px solid var(--linea);border-radius:16px;padding:12px;margin-top:10px}
+.item .nom{font-weight:600}
+.item .val{font-weight:800}
+.ops{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.op{flex:1;min-width:90px;border:2px solid var(--linea);background:var(--papel);color:var(--tinta);border-radius:12px;padding:9px 6px;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.op[aria-pressed="true"].hay{border-color:var(--verde);background:var(--verde);color:#fff}
+.op[aria-pressed="true"].nohay{border-color:var(--rojo);background:var(--rojo);color:#fff}
+.op[aria-pressed="true"].otra{border-color:var(--mango);background:var(--mango);color:#1C2321}
+.alt{display:none;margin-top:8px;gap:6px;flex-direction:column}
+.alt.on{display:flex}
+.alt input,.dom input{border:2px solid var(--linea);border-radius:12px;padding:10px;font:inherit;font-size:16px;background:var(--papel);color:var(--tinta);width:100%}
+.dom{display:flex;align-items:center;gap:10px;margin-top:6px}
+.dom span{font-weight:800}
+.resumen{background:var(--papel);border:2px dashed var(--mar);border-radius:16px;padding:12px;margin-top:12px;white-space:pre-wrap;font-size:15px}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin:14px 2px 10px}
+.total b{font-size:24px}
+.error{color:var(--rojo);font-size:15px;margin-top:8px}
+.oculto{display:none}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--mango);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="tienda">Tienda Demo Santa Marta</p>
+  <h1>Confirmar pedido</h1>
+
+  <section id="s1">
+    <p class="paso">1. Pega el pedido del cliente</p>
+    <textarea id="txt" placeholder="En WhatsApp, deja presionado el mensaje del cliente, toca Copiar y pégalo aquí."></textarea>
+    <button class="btn prim" id="leer" type="button">Revisar pedido</button>
+    <p class="error" id="err"></p>
+  </section>
+
+  <section id="s2" class="oculto">
+    <p class="paso">2. Marca lo que tienes</p>
+    <div id="items"></div>
+
+    <p class="paso">3. Valor del domicilio</p>
+    <div class="dom"><span>$</span><input id="dom" inputmode="numeric" placeholder="Ej. 3000"></div>
+
+    <div class="total"><span>Total para el cliente</span><b id="tot">$0</b></div>
+
+    <p class="paso">4. Responde al cliente</p>
+    <div class="resumen" id="msg"></div>
+    <p class="ayuda">Al tocar el botón, WhatsApp te pide escoger el chat del cliente.</p>
+    <a class="btn verde" id="enviar" href="#" target="_blank" rel="noopener" style="margin-top:10px">Responder al cliente por WhatsApp</a>
+    <button class="btn sec" id="otro" type="button">Revisar otro pedido</button>
+  </section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const plata=v=>"$"+Math.round(v).toLocaleString("es-CO");
+const num=s=>Number(String(s||"").replace(/[^0-9]/g,""))||0;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let L=[];
+
+function leer(texto){
+  return texto.split(/\r?\n/).map(l=>l.trim()).filter(l=>/^[•\-\*]/.test(l)).map(l=>{
+    l=l.replace(/^[•\-\*]\s*/,"");
+    const i=l.lastIndexOf("=");
+    if(i<0) return null;
+    return {txt:l.slice(0,i).trim(), v:num(l.slice(i+1)), est:"hay", alt:"", altV:""};
+  }).filter(Boolean);
+}
+
+function pintarItems(){
+  $("#items").innerHTML=L.map((x,i)=>`
+    <div class="item">
+      <div class="nom">${esc(x.txt)}</div>
+      <div class="val">${plata(x.v)}</div>
+      <div class="ops" role="group" aria-label="Disponibilidad">
+        <button class="op hay" type="button" data-i="${i}" data-e="hay" aria-pressed="${x.est==="hay"}">✅ Hay</button>
+        <button class="op nohay" type="button" data-i="${i}" data-e="nohay" aria-pressed="${x.est==="nohay"}">❌ No hay</button>
+        <button class="op otra" type="button" data-i="${i}" data-e="otra" aria-pressed="${x.est==="otra"}">🔄 Otra</button>
+      </div>
+      <div class="alt ${x.est==="otra"?"on":""}">
+        <input data-i="${i}" data-k="alt" placeholder="¿Qué le ofreces? Ej. Leche Alquería 1 litro" value="${esc(x.alt)}">
+        <input data-i="${i}" data-k="altV" inputmode="numeric" placeholder="Valor de esa línea. Ej. 8000" value="${esc(x.altV)}">
+      </div>
+    </div>`).join("");
+}
+
+function calcular(){
+  const dom=num($("#dom").value);
+  let total=0; const lineas=[];
+  L.forEach(x=>{
+    if(x.est==="hay"){ total+=x.v; lineas.push(`✅ ${x.txt} = ${plata(x.v)}`); }
+    else if(x.est==="nohay"){ lineas.push(`❌ ${x.txt}: no hay`); }
+    else {
+      const v=num(x.altV); total+=v;
+      lineas.push(`🔄 ${x.txt}: no hay. Te ofrezco ${x.alt||"otra presentación"}${v?` = ${plata(v)}`:""}. ¿Te sirve?`);
+    }
+  });
+  total+=dom;
+  const hayCambio=L.some(x=>x.est==="otra");
+  const msg="¡Hola! Revisamos tu pedido:\n"+lineas.join("\n")+
+    (dom?`\nDomicilio = ${plata(dom)}`:"")+
+    `\n\nTotal: ${plata(total)}`+(hayCambio?"\n(el total incluye los cambios que te ofrezco)":"")+
+    "\n\n¿Lo confirmamos? ¿Pagas en efectivo o por transferencia?";
+  $("#tot").textContent=plata(total);
+  $("#msg").textContent=msg;
+  $("#enviar").href="https://wa.me/?text="+encodeURIComponent(msg);
+}
+
+$("#leer").addEventListener("click",()=>{
+  L=leer($("#txt").value);
+  if(!L.length){ $("#err").textContent="No encontré productos. Copia el mensaje completo del pedido, desde \"¡Hola! Quiero hacer este pedido\"."; return; }
+  $("#err").textContent="";
+  $("#s1").classList.add("oculto"); $("#s2").classList.remove("oculto");
+  pintarItems(); calcular(); window.scrollTo(0,0);
+});
+$("#items").addEventListener("click",e=>{
+  const b=e.target.closest(".op"); if(!b) return;
+  L[b.dataset.i].est=b.dataset.e; pintarItems(); calcular();
+});
+$("#items").addEventListener("input",e=>{
+  const t=e.target; if(!t.dataset.k) return;
+  L[t.dataset.i][t.dataset.k]=t.value; calcular();
+});
+$("#dom").addEventListener("input",calcular);
+$("#otro").addEventListener("click",()=>{
+  L=[]; $("#txt").value=""; $("#dom").value="";
+  $("#s2").classList.add("oculto"); $("#s1").classList.remove("oculto"); $("#txt").focus();
+});
+
+/* Si el pedido llega por el enlace (?p=...), se carga solo */
+(function(){
+  let t=""; try{ t=new URLSearchParams(location.search).get("p")||""; }catch(e){}
+  if(t){ $("#txt").value=t; $("#leer").click(); }
+})();
+</script>
+</body>
+</html>
