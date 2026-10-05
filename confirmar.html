@@ -107,7 +107,7 @@ function pintarItems(){
         <button class="op otra" type="button" data-i="${i}" data-e="otra" aria-pressed="${x.est==="otra"}">🔄 Otra</button>
       </div>
       <div class="alt ${x.est==="otra"?"on":""}">
-        <input data-i="${i}" data-k="alt" placeholder="¿Qué le ofreces? Ej. Leche Alquería 1 litro" value="${esc(x.alt)}">
+        <input data-i="${i}" data-k="alt" placeholder="Solo el producto. Ej. Arroz Pinillar 1 libra" value="${esc(x.alt)}">
         <input data-i="${i}" data-k="altV" inputmode="numeric" placeholder="Valor de esa línea. Ej. 8000" value="${esc(x.altV)}">
       </div>
     </div>`).join("");
@@ -121,14 +121,14 @@ function calcular(){
     else if(x.est==="nohay"){ lineas.push(`❌ ${x.txt}: no hay`); }
     else {
       const v=num(x.altV); total+=v;
-      lineas.push(`🔄 ${x.txt}: no hay. Te ofrezco ${x.alt||"otra presentación"}${v?` = ${plata(v)}`:""}. ¿Te sirve?`);
+      lineas.push(`🔄 ${x.txt}: no hay. Opción: ${x.alt||"otra presentación"}${v?` = ${plata(v)}`:""}. ¿Te sirve?`);
     }
   });
   total+=dom;
   const hayCambio=L.some(x=>x.est==="otra");
   const msg="¡Hola! Revisamos tu pedido:\n"+lineas.join("\n")+
     (dom?`\nDomicilio = ${plata(dom)}`:"")+
-    `\n\nTotal: ${plata(total)}`+(hayCambio?"\n(el total incluye los cambios que te ofrezco)":"")+
+    `\n\nTotal: ${plata(total)}`+(hayCambio?"\n(el total incluye las opciones que te ofrezco)":"")+
     "\n\n¿Lo confirmamos? ¿Pagas en efectivo o por transferencia?";
   $("#tot").textContent=plata(total);
   $("#msg").textContent=msg;
@@ -156,10 +156,37 @@ $("#otro").addEventListener("click",()=>{
   $("#s2").classList.add("oculto"); $("#s1").classList.remove("oculto"); $("#txt").focus();
 });
 
-/* Si el pedido llega por el enlace (?p=...), se carga solo */
-(function(){
-  let t=""; try{ t=new URLSearchParams(location.search).get("p")||""; }catch(e){}
-  if(t){ $("#txt").value=t; $("#leer").click(); }
+/* Si el pedido llega por el enlace corto (?p=P001-1.P012-0.5&t=Tienda), se arma desde el Excel */
+const nrmL=s=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+const capL=s=>s?String(s).charAt(0).toUpperCase()+String(s).slice(1):"";
+function objs(ws){return XLSX.utils.sheet_to_json(ws,{defval:""}).map(f=>{const o={};Object.keys(f).forEach(k=>{o[nrmL(k).replace(/\s+/g,"_")]=typeof f[k]==="string"?f[k].trim():f[k];});return o;});}
+function palabras(k){const e=Math.floor(k),r=Math.round((k-e)*4);
+  if(!e) return ["","un cuarto de libra","media libra","tres cuartos de libra"][r];
+  return (e===1?"1 libra":e+" libras")+["",", y cuarto"," y media"," y tres cuartos"][r].replace(", y"," y");}
+function gramos(k){const g=Math.round(k*500);return g>=1000?(g/1000).toLocaleString("es-CO")+" kg":g+" g";}
+(async function(){
+  const q=new URLSearchParams(location.search); const p=q.get("p")||"";
+  if(!p) return;
+  if(!/^[A-Za-z0-9_]+-[\d.]+/.test(p)){ $("#txt").value=p; $("#leer").click(); return; }
+  try{
+    await new Promise((ok,mal)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";s.onload=ok;s.onerror=mal;document.head.appendChild(s);});
+    const r=await fetch("catalogo-tiendas.xlsx",{cache:"no-store"}); const wb=XLSX.read(await r.arrayBuffer(),{type:"array"});
+    const tiendas=wb.SheetNames.filter(n=>!["instrucciones","listas","maestro"].includes(nrmL(n)));
+    const hoja=tiendas.find(t=>nrmL(t)===nrmL(q.get("t")))||tiendas[0];
+    const M={}; objs(wb.Sheets[wb.SheetNames.find(n=>nrmL(n)==="maestro")]).forEach(m=>{if(m.codigo)M[String(m.codigo).toUpperCase()]=m;});
+    const PR={}; objs(wb.Sheets[hoja]).forEach(t=>{if(t.codigo)PR[String(t.codigo).toUpperCase()]=Math.round(Number(String(t.precio).replace(/[^0-9.]/g,"")))||0;});
+    L=p.split("~").map(par=>{
+      const i=par.lastIndexOf("-"); const cod=par.slice(0,i).toUpperCase(); const k=Number(par.slice(i+1))||0;
+      const m=M[cod]; if(!m||!k) return null;
+      const peso=nrmL(m.se_vende_por)==="peso"; const precio=PR[cod]||0;
+      const nom=capL(m.producto)+(m.marca?" "+capL(m.marca):"");
+      const pres=[capL(String(m.empaque||"").toLowerCase()),m.contenido,m.medida].filter(Boolean).join(" ");
+      const txt=peso?`${palabras(k)} (${gramos(k)}) de ${nom}`:`${k} × ${nom}${pres?" ("+pres+")":""}`;
+      return {txt, v:Math.round(precio*k), est:"hay", alt:"", altV:""};
+    }).filter(Boolean);
+    if(!L.length) return;
+    $("#s1").classList.add("oculto"); $("#s2").classList.remove("oculto"); pintarItems(); calcular();
+  }catch(e){ $("#err").textContent="No pude cargar el pedido desde el enlace. Puedes pegarlo aquí."; }
 })();
 </script>
 </body>

@@ -241,7 +241,9 @@ $("#carro").addEventListener("click",()=>{
 $("#resumen").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleLista();}});
 function textoPedido(){
   const base=textoBase();
-  return base+"\n\nPara la tienda, confirmar aquí: "+CONFIRMAR+"?p="+encodeURIComponent(base);
+  const items=Object.entries(cart).filter(([,k])=>k>0);
+  const p=items.map(([id,k])=>P[id].cod+"-"+k).join("~");
+  return base+"\n\nRef. pedido: "+CONFIRMAR+"?p="+p+(window.TIENDA?"&t="+encodeURIComponent(window.TIENDA):"");
 }
 function textoBase(){
   const items=Object.entries(cart).filter(([,k])=>k>0);
