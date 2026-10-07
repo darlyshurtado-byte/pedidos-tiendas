@@ -117,6 +117,28 @@ body.escribiendo .barra{transform:translateY(110%)}
 @media (prefers-reduced-motion:reduce){.carro.salta{animation:none}}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
 .pista:empty{display:none}
+.datos{background:var(--cielo);border-radius:14px;padding:10px 12px;margin-top:10px}
+.datos .dtit{margin:0 0 6px;font-weight:800;font-size:15px;color:var(--mar)}
+.datos input{width:100%;border:1.5px solid var(--linea);border-radius:10px;padding:9px 10px;font:inherit;font-size:16px;background:var(--papel);color:var(--tinta);margin-top:6px}
+.datos input.mal{border-color:#C0392B}
+.datos .res{margin:0;font-size:14px;line-height:1.4}
+.datos .camb{border:0;background:none;color:var(--mar);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:4px 0 0}
+.derr{color:#C0392B;font-size:14px;font-weight:600;margin:6px 0 0;min-height:0}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.modal .caja2{background:var(--papel);color:var(--tinta);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.modal h3{margin:0 0 8px;font-size:19px;color:var(--mar)}
+.modal .res{margin:0 0 14px;font-size:16px;line-height:1.45;background:var(--cielo);border-radius:12px;padding:10px 12px}
+.modal .sec2{display:block;width:100%;margin-top:8px;border:0;border-radius:14px;background:var(--cielo);color:var(--tinta);font:inherit;font-weight:700;font-size:16px;padding:13px;cursor:pointer}
+.modal .dq{margin:0 0 6px;font-weight:700;font-size:15px}
+.dirop{display:block;width:100%;text-align:left;border:2px solid var(--linea);background:var(--papel);color:var(--tinta);border-radius:12px;padding:11px 12px;font:inherit;font-size:15px;margin-bottom:6px;cursor:pointer}
+.dirop.sel{border-color:var(--verde);background:#E7F5EC;font-weight:700}
+.dirop.nueva{color:var(--mar);font-weight:700;border-style:dashed}
+.nuevaDir{display:none;margin-bottom:10px}.nuevaDir.on{display:block}
+.nuevaDir input{width:100%;border:1.5px solid var(--linea);border-radius:10px;padding:9px 10px;font:inherit;font-size:16px;background:var(--papel);color:var(--tinta)}
+.nuevaDir input.mal{border-color:#C0392B}
+.modal .res{margin-bottom:10px}
+.modal .caja2{max-height:92vh;overflow:auto}
 </style>
 </head>
 <body>
@@ -243,7 +265,10 @@ function textoPedido(){
   const base=textoBase();
   const items=Object.entries(cart).filter(([,k])=>k>0);
   const p=items.map(([id,k])=>P[id].cod+"-"+k).join("~");
-  return base+"\n\nRef. pedido: "+CONFIRMAR+"?p="+p+(window.TIENDA?"&t="+encodeURIComponent(window.TIENDA):"");
+  const d=(typeof DATOS!=="undefined"&&datosOk())?DATOS:null;
+  const ent=d?`\n\nEntregar a: ${d.nom.trim()}\nDirección: ${d.dir.trim()}\nCelular: ${d.cel.trim()}`:"";
+  const extra=d?"&c="+celNorm(d.cel)+"&n="+encodeURIComponent(d.nom.trim().split(/\s+/)[0]):"";
+  return base+ent+"\n\nRef. pedido: "+CONFIRMAR+"?p="+p+(window.TIENDA?"&t="+encodeURIComponent(window.TIENDA):"")+extra;
 }
 function textoBase(){
   const items=Object.entries(cart).filter(([,k])=>k>0);
@@ -263,6 +288,85 @@ function waLink(tel,texto,pkg){
 function ajustarDestino(a){ if(/Android/i.test(navigator.userAgent)) a.removeAttribute("target"); }
 function actualizarEnlace(){ $("#enviar").href=waLink(TEL,textoPedido(),"com.whatsapp"); ajustarDestino($("#enviar")); }
 
+
+/* Datos del cliente: se piden una vez y el celular los recuerda */
+const DKEY="pedidos_cliente_datos";
+function leerDatos(){ try{ return JSON.parse(localStorage.getItem(DKEY))||{}; }catch(e){ return {}; } }
+function guardarDatos(d){ try{ localStorage.setItem(DKEY,JSON.stringify(d)); }catch(e){} }
+function celNorm(c){ let d=String(c||"").replace(/\D/g,""); if(d.length===10&&d[0]==="3") d="57"+d; return /^573\d{9}$/.test(d)?d:""; }
+let DATOS=leerDatos();
+function datosOk(){ return DATOS.nom&&DATOS.nom.trim().length>=2 && celNorm(DATOS.cel) && DATOS.dir&&DATOS.dir.trim().length>=4; }
+function pintarDatos(editar){
+  let box=$("#datos"); if(!box){ box=document.createElement("div"); box.id="datos"; box.className="datos"; $("#extra").insertBefore(box,$("#extra .nota")); }
+  if(datosOk()&&!editar){
+    box.innerHTML=`<p class="dtit">Entregar a</p><p class="res">${esc(DATOS.nom)} · ${esc(DATOS.cel)}<br>${esc(DATOS.dir)}</p><button class="camb" type="button" id="dCamb">Cambiar mis datos</button>`;
+    $("#dCamb").onclick=()=>pintarDatos(true); return;
+  }
+  box.innerHTML=`<p class="dtit">Tus datos para la entrega</p>
+    <input id="dNom" placeholder="Nombre" autocomplete="name" value="${esc(DATOS.nom||"")}">
+    <input id="dCel" placeholder="Celular (WhatsApp). Ej. 3001234567" inputmode="tel" autocomplete="tel" value="${esc(DATOS.cel||"")}">
+    <input id="dDir" placeholder="Dirección o barrio. Ej. Galicia, calle 5 # 10-20" autocomplete="street-address" value="${esc(DATOS.dir||"")}">
+    <p class="derr" id="dErr"></p>`;
+  ["dNom","dCel","dDir"].forEach(id=>$("#"+id).addEventListener("input",()=>{
+    Object.assign(DATOS,{nom:$("#dNom").value,cel:$("#dCel").value,dir:$("#dDir").value}); guardarDatos(DATOS);
+    $("#"+id).classList.remove("mal"); $("#dErr").textContent=""; actualizarEnlace();
+  }));
+}
+function faltanDatos(){
+  const f=[]; if(!(DATOS.nom&&DATOS.nom.trim().length>=2)) f.push(["dNom","tu nombre"]);
+  if(!celNorm(DATOS.cel)) f.push(["dCel","tu celular de 10 dígitos"]);
+  if(!(DATOS.dir&&DATOS.dir.trim().length>=4)) f.push(["dDir","tu dirección o barrio"]);
+  return f;
+}
+const modal=document.createElement("div"); modal.className="modal"; modal.id="modal";
+modal.innerHTML=`<div class="caja2" role="dialog" aria-modal="true" aria-labelledby="mTit">
+  <h3 id="mTit">Este pedido será enviado con tus datos:</h3>
+  <p class="res" id="mRes"></p>
+  <p class="dq">¿A cuál dirección lo enviamos?</p>
+  <div id="mDirs"></div>
+  <a class="enviar" id="mOk" href="#">Confirmar y enviar</a>
+  <button class="sec2" type="button" id="mCamb">Cambiar mis datos</button>
+  <button class="sec2" type="button" id="mNo">Volver</button></div>`;
+document.body.appendChild(modal);
+const cerrarModal=()=>modal.classList.remove("on");
+modal.addEventListener("click",e=>{ if(e.target===modal) cerrarModal(); });
+$("#mNo").onclick=cerrarModal;
+$("#mCamb").onclick=()=>{ cerrarModal(); if(!$("#extra").classList.contains("on")) toggleLista(); pintarDatos(true); $("#dNom").focus(); };
+$("#mOk").addEventListener("click",()=>{ recordarDir(DATOS.dir.trim()); setTimeout(cerrarModal,300); });
+function recordarDir(d){ if(!d) return; const l=(DATOS.dirs||[]).filter(x=>x.toLowerCase()!==d.toLowerCase()); l.unshift(d); DATOS.dirs=l.slice(0,3); guardarDatos(DATOS); }
+function pintarModal(){
+  $("#mRes").innerHTML=`<b>${esc(DATOS.nom.trim())}</b><br>Celular: ${esc(DATOS.cel.trim())}`;
+  const l=[...(DATOS.dirs||[])]; const act=DATOS.dir.trim();
+  if(act && !l.some(x=>x.toLowerCase()===act.toLowerCase())) l.unshift(act);
+  $("#mDirs").innerHTML=l.slice(0,3).map((d,i)=>`<button type="button" class="dirop ${d.toLowerCase()===act.toLowerCase()?"sel":""}" data-d="${esc(d)}">📍 ${esc(d)}</button>`).join("")+
+    `<button type="button" class="dirop nueva" id="mAdd">+ Añadir otra dirección</button>
+     <div class="nuevaDir" id="mNueva"><input id="mDirIn" placeholder="Ej. Trabajo: Centro, calle 22 # 4-10" autocomplete="street-address"><button type="button" class="sec2" id="mUsar">Usar esta dirección</button></div>`;
+  const ok=$("#mOk"); actualizarEnlace(); ok.href=$("#enviar").href; if($("#enviar").target) ok.target=$("#enviar").target; else ok.removeAttribute("target");
+}
+$("#mDirs").addEventListener("click",e=>{
+  const b=e.target.closest(".dirop"); if(!b) return;
+  if(b.id==="mAdd"){ $("#mNueva").classList.add("on"); $("#mDirIn").focus(); return; }
+  DATOS.dir=b.dataset.d; guardarDatos(DATOS); pintarModal();
+});
+$("#mDirs").addEventListener("click",e=>{
+  if(e.target.id!=="mUsar") return; const v=$("#mDirIn").value.trim();
+  if(v.length<4){ $("#mDirIn").classList.add("mal"); $("#mDirIn").focus(); return; }
+  DATOS.dir=v; guardarDatos(DATOS); pintarModal();
+});
+$("#enviar").addEventListener("click",e=>{
+  const f=faltanDatos();
+  if(!f.length){
+    e.preventDefault();
+    pintarModal(); modal.classList.add("on"); return;
+  }
+  e.preventDefault();
+  if(!$("#extra").classList.contains("on")) toggleLista();
+  if(!$("#dNom")) pintarDatos(true);
+  f.forEach(([id])=>$("#"+id).classList.add("mal"));
+  $("#dErr").textContent="Para enviar el pedido escribe "+f.map(x=>x[1]).join(", ")+".";
+  $("#"+f[0][0]).focus();
+});
+pintarDatos(false);
 pintarCats(); pintar(); pintarBarra();
 
 </script>
