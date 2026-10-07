@@ -252,7 +252,16 @@ function textoBase(){
     items.map(([id,k])=>`• ${qtyTxt(P[id],k)} ${P[id].n}${P[id].m?" "+P[id].m:""}${P[id].g?"":" ("+P[id].d+")"} = ${plata(Math.round(P[id].v*k))}`).join("\n")+
     `\n\nTotal${items.some(([id])=>P[id].g)?" estimado":""}: ${plata(total)}`;
 }
-function actualizarEnlace(){ $("#enviar").href="https://wa.me/"+TEL+"?text="+encodeURIComponent(textoPedido()); }
+
+/* Abre el WhatsApp correcto cuando el celular tiene los dos (normal y Business) */
+function waLink(tel,texto,pkg){
+  const web="https://wa.me/"+(tel||"")+"?text="+encodeURIComponent(texto);
+  if(!/Android/i.test(navigator.userAgent)) return web;
+  return "intent://send?"+(tel?"phone="+tel+"&":"")+"text="+encodeURIComponent(texto)+
+    "#Intent;scheme=whatsapp;package="+pkg+";S.browser_fallback_url="+encodeURIComponent(web)+";end";
+}
+function ajustarDestino(a){ if(/Android/i.test(navigator.userAgent)) a.removeAttribute("target"); }
+function actualizarEnlace(){ $("#enviar").href=waLink(TEL,textoPedido(),"com.whatsapp"); ajustarDestino($("#enviar")); }
 
 pintarCats(); pintar(); pintarBarra();
 

@@ -153,6 +153,15 @@ function pintarItems(){
   $("#enviar").classList.toggle("bloq",n>0);
   $("#todos").checked=L.length>0&&L.every(x=>x.st==="d");
 }
+
+/* Abre el WhatsApp correcto cuando el celular tiene los dos (normal y Business) */
+function waLink(tel,texto,pkg){
+  const web="https://wa.me/"+(tel||"")+"?text="+encodeURIComponent(texto);
+  if(!/Android/i.test(navigator.userAgent)) return web;
+  return "intent://send?"+(tel?"phone="+tel+"&":"")+"text="+encodeURIComponent(texto)+
+    "#Intent;scheme=whatsapp;package="+pkg+";S.browser_fallback_url="+encodeURIComponent(web)+";end";
+}
+function ajustarDestino(a){ if(/Android/i.test(navigator.userAgent)) a.removeAttribute("target"); }
 function calcular(){
   const dom=num($("#dom").value);
   const obsTxt=$("#obs").value.trim();
@@ -177,7 +186,7 @@ function calcular(){
   }
   $("#tot").textContent=plata(total);
   $("#msg").textContent=msg;
-  $("#enviar").href="https://wa.me/?text="+encodeURIComponent(msg);
+  $("#enviar").href=waLink("",msg,"com.whatsapp.w4b"); ajustarDestino($("#enviar"));
 }
 
 $("#leer").addEventListener("click",()=>{
