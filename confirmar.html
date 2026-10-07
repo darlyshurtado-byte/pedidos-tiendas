@@ -31,6 +31,26 @@ textarea{width:100%;min-height:130px;border:3px solid var(--mar);border-radius:1
 .verde{background:var(--verde);color:#fff;width:100%;font-size:16px;display:block;text-align:center;text-decoration:none}
 .sec{background:var(--cielo);color:var(--tinta);width:100%;margin-top:8px}
 .item{background:var(--papel);border:1px solid var(--linea);border-radius:12px;padding:8px 10px;margin-top:6px}
+.item.cambio{border-color:var(--mango)}
+.item.d{border-color:var(--verde)} .item.i{border-color:var(--mango)} .item.n{border-color:var(--rojo)}
+.estado{border:2px solid var(--linea);border-radius:10px;padding:7px 8px;font:inherit;font-size:14px;font-weight:700;background:var(--papel);color:var(--tinta);min-width:170px}
+.estado.d{background:var(--verde);border-color:var(--verde);color:#fff}
+.estado.i{background:var(--mango);border-color:var(--mango);color:#1C2321}
+.estado.n{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.chk{border:2px solid var(--linea);background:var(--papel);color:var(--tinta);border-radius:10px;padding:6px 16px;font:inherit;font-size:14px;font-weight:800;cursor:pointer;min-width:120px}
+.chk[aria-pressed="true"]{background:var(--verde);border-color:var(--verde);color:#fff}
+.disp select{border:1.5px solid var(--linea);border-radius:8px;padding:6px;font:inherit;font-size:15px;background:var(--papel);color:var(--tinta)}
+.bloq{opacity:.45}
+.todos{display:flex;align-items:center;gap:10px;white-space:nowrap;background:var(--papel);border:1.5px solid var(--verde);border-radius:10px;padding:9px 12px;margin-top:8px;font-weight:700;color:var(--verde);cursor:pointer}
+.todos input{width:22px;height:22px;accent-color:var(--verde);margin:0}
+.item .fila2{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:13px;color:var(--gris)}
+.item .env{display:flex;align-items:center;gap:6px;color:var(--tinta)}
+.item .env b{min-width:56px;text-align:center}
+.cero{color:var(--rojo)}
+.inc{color:#B07D00}
+.st{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--linea);background:var(--papel);color:var(--tinta);font:inherit;font-size:18px;font-weight:800;cursor:pointer;line-height:1}
+.st:disabled{opacity:.3;cursor:default}
+textarea.obs{min-height:60px;border:1.5px solid var(--linea);border-radius:10px;font-size:15px}
 .item .fila{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
 .item .nom{font-weight:600;font-size:14px}
 .item .val{font-weight:800;font-size:14px;white-space:nowrap}
@@ -70,14 +90,20 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
   </section>
 
   <section id="s2" class="oculto">
-    <p class="paso">Marca lo que tienes</p>
+    <p class="paso">Revisa el pedido</p>
+    <p class="ayuda" style="margin-top:0">Escoge el estado de cada producto.</p>
+    <label class="todos"><input type="checkbox" id="todos"> Marcar todo disponible</label>
     <div id="items"></div>
+
+    <p class="paso">Observaciones</p>
+    <textarea id="obs" class="obs" placeholder="Ej. No tengo arroz Diana, tengo arroz Familiar a $5.000 la libra"></textarea>
 
     <p class="paso">Domicilio</p>
     <div class="dom"><span>$</span><input id="dom" inputmode="numeric" placeholder="Ej. 3000"></div>
 
     <div class="total"><span>Total para el cliente</span><b id="tot">$0</b></div>
 
+    <p class="error" id="faltan"></p>
     <a class="btn verde" id="enviar" href="#" target="_blank" rel="noopener">Responder al cliente por WhatsApp</a>
     <details class="ver"><summary>Ver mensaje</summary><div class="resumen" id="msg"></div></details>
     <button class="btn sec" id="otro" type="button">Revisar otro pedido</button>
@@ -89,49 +115,66 @@ const $=s=>document.querySelector(s);
 const plata=v=>"$"+Math.round(v).toLocaleString("es-CO");
 const num=s=>Number(String(s||"").replace(/[^0-9]/g,""))||0;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let L=[];
+let L=[]; let PAGO=[];
 
 function leer(texto){
   return texto.split(/\r?\n/).map(l=>l.trim()).filter(l=>/^[•\-\*]/.test(l)).map(l=>{
     l=l.replace(/^[•\-\*]\s*/,"");
     const i=l.lastIndexOf("=");
     if(i<0) return null;
-    return {txt:l.slice(0,i).trim(), v:num(l.slice(i+1)), est:"hay", alt:"", altV:""};
+    let nom=l.slice(0,i).trim(), k=1; const v=num(l.slice(i+1));
+    const m=nom.match(/^(\d+)\s*[×x]\s*(.+)$/); if(m){k=Number(m[1]); nom=m[2];}
+    return {nom, k, env:null, paso:1, peso:false, pu:k?v/k:v};
   }).filter(Boolean);
 }
 
+const cant=(x,k)=>x.peso?(k?palabras(k):"0"):String(k);
+function parciales(x){ const o=[]; for(let k=x.paso;k<x.k-1e-9;k=Math.round((k+x.paso)*100)/100) o.push(k); return o; }
 function pintarItems(){
-  $("#items").innerHTML=L.map((x,i)=>`
-    <div class="item">
-      <div class="fila"><span class="nom">${esc(x.txt)}</span><span class="val">${plata(x.v)}</span></div>
-      <div class="ops" role="group" aria-label="Disponibilidad">
-        <button class="op hay" type="button" data-i="${i}" data-e="hay" aria-pressed="${x.est==="hay"}">✅ Hay</button>
-        <button class="op nohay" type="button" data-i="${i}" data-e="nohay" aria-pressed="${x.est==="nohay"}">❌ No hay</button>
-        <button class="op otra" type="button" data-i="${i}" data-e="otra" aria-pressed="${x.est==="otra"}">🔄 Otra</button>
+  $("#items").innerHTML=L.map((x,i)=>{
+    const par=parciales(x);
+    return `
+    <div class="item ${x.st||""}">
+      <div class="fila"><span class="nom">${esc(x.nom)}</span><span class="val">${x.env===null?"":plata(x.pu*x.env)}</span></div>
+      <div class="fila2">
+        <span class="pid">Pedido: <b>${esc(cant(x,x.k))}</b></span>
+        <select class="estado ${x.st||""}" data-i="${i}" data-k="st">
+          <option value="" ${!x.st?"selected":""}>Escoge…</option>
+          <option value="d" ${x.st==="d"?"selected":""}>✓ Disponible</option>
+          ${par.length?`<option value="i" ${x.st==="i"?"selected":""}>Disponible incompleto</option>`:""}
+          <option value="n" ${x.st==="n"?"selected":""}>No disponible</option>
+        </select>
       </div>
-      <div class="alt ${x.est==="otra"?"on":""}">
-        <input data-i="${i}" data-k="alt" placeholder="Producto. Ej. Arroz Pinillar 1 lb" value="${esc(x.alt)}">
-        <input data-i="${i}" data-k="altV" inputmode="numeric" placeholder="Valor" value="${esc(x.altV)}">
-      </div>
-    </div>`).join("");
+      ${x.st==="i"?`<div class="fila2 disp"><span>Cantidad disponible:</span>
+        <select data-i="${i}" data-k="cant"><option value="" ${x.env===null?"selected":""}>—</option>${par.map(k=>`<option value="${k}" ${x.env===k?"selected":""}>${esc(cant(x,k))}</option>`).join("")}</select></div>`:""}
+    </div>`;}).join("");
+  const n=L.filter(x=>x.env===null).length;
+  $("#faltan").textContent=n?`Te falta revisar ${n} producto${n>1?"s":""}.`:"";
+  $("#enviar").classList.toggle("bloq",n>0);
+  $("#todos").checked=L.length>0&&L.every(x=>x.st==="d");
 }
-
 function calcular(){
   const dom=num($("#dom").value);
-  let total=0; const obs=[];
+  const obsTxt=$("#obs").value.trim();
+  let total=0; const cambios=[];
   L.forEach(x=>{
-    if(x.est==="hay"){ total+=x.v; }
-    else if(x.est==="nohay"){ obs.push(`❌ ${x.txt}: no hay`); }
-    else {
-      const v=num(x.altV); total+=v;
-      obs.push(`🔄 ${x.txt}: no hay, pero tengo ${x.alt||"otra presentación"}${v?` = ${plata(v)}`:""}. ¿Te sirve?`);
-    }
+    if(x.env===null) return;
+    total+=x.pu*x.env;
+    if(x.env===0) cambios.push(`❌ ${x.nom}: no disponible`);
+    else if(x.env<x.k) cambios.push(`⚠️ ${x.nom}: pediste ${cant(x,x.k)}, te envío ${cant(x,x.env)}`);
   });
   total+=dom;
   const pie=(dom?`Domicilio: ${plata(dom)}\n`:"")+`Total: ${plata(total)}`;
-  const msg=obs.length
-    ? "¡Hola! Revisamos tu pedido. Esto tiene cambios:\n"+obs.join("\n")+"\n\nLo demás sí lo tenemos ✅\n"+pie+"\n\n¿Lo confirmamos? ¿Pagas en efectivo o por transferencia?"
-    : "¡Hola! Tu pedido está confirmado ✅\n"+pie+"\n\n¿Pagas en efectivo o por transferencia?";
+  const pago=PAGO.length?"Puedes pagar en efectivo o por transferencia:\n"+PAGO.join("\n"):"¿Pagas en efectivo o por transferencia?";
+  let msg;
+  if(!cambios.length && !obsTxt){
+    msg="¡Hola! Tu pedido está confirmado ✅\n"+pie+"\n\n"+pago;
+  } else {
+    msg="¡Hola! Revisamos tu pedido:\n"+(cambios.length?cambios.join("\n")+"\n":"")+
+      (obsTxt?`📝 ${obsTxt}\n`:"")+
+      (cambios.length?"Lo demás va completo ✅\n":"")+"\n"+pie+
+      "\n\n¿Lo confirmamos?\n"+pago;
+  }
   $("#tot").textContent=plata(total);
   $("#msg").textContent=msg;
   $("#enviar").href="https://wa.me/?text="+encodeURIComponent(msg);
@@ -144,17 +187,18 @@ $("#leer").addEventListener("click",()=>{
   $("#s1").classList.add("oculto"); $("#s2").classList.remove("oculto");
   pintarItems(); calcular(); window.scrollTo(0,0);
 });
-$("#items").addEventListener("click",e=>{
-  const b=e.target.closest(".op"); if(!b) return;
-  L[b.dataset.i].est=b.dataset.e; pintarItems(); calcular();
+$("#items").addEventListener("change",e=>{
+  const t=e.target; if(t.tagName!=="SELECT") return; const x=L[t.dataset.i];
+  if(t.dataset.k==="st"){ x.st=t.value||null; x.env=x.st==="d"?x.k:x.st==="n"?0:null; }
+  else x.env=t.value===""?null:Number(t.value);
+  pintarItems(); calcular();
 });
-$("#items").addEventListener("input",e=>{
-  const t=e.target; if(!t.dataset.k) return;
-  L[t.dataset.i][t.dataset.k]=t.value; calcular();
-});
+$("#todos").addEventListener("change",e=>{ const on=e.target.checked; L.forEach(x=>{ if(on){ x.st="d"; x.env=x.k; } else if(x.st==="d"){ x.st=null; x.env=null; } }); pintarItems(); calcular(); });
+$("#enviar").addEventListener("click",e=>{ if(L.some(x=>x.env===null)){ e.preventDefault(); $("#faltan").scrollIntoView({behavior:"smooth",block:"center"}); } });
+$("#obs").addEventListener("input",calcular);
 $("#dom").addEventListener("input",calcular);
 $("#otro").addEventListener("click",()=>{
-  L=[]; $("#txt").value=""; $("#dom").value="";
+  L=[]; $("#todos").checked=false; $("#txt").value=""; $("#dom").value=""; $("#obs").value="";
   $("#s2").classList.add("oculto"); $("#s1").classList.remove("oculto"); $("#txt").focus();
 });
 
@@ -177,15 +221,16 @@ function gramos(k){const g=Math.round(k*500);return g>=1000?(g/1000).toLocaleStr
     const tiendas=wb.SheetNames.filter(n=>!["instrucciones","listas","maestro"].includes(nrmL(n)));
     const hoja=tiendas.find(t=>nrmL(t)===nrmL(q.get("t")))||tiendas[0];
     const M={}; objs(wb.Sheets[wb.SheetNames.find(n=>nrmL(n)==="maestro")]).forEach(m=>{if(m.codigo)M[String(m.codigo).toUpperCase()]=m;});
-    const PR={}; objs(wb.Sheets[hoja]).forEach(t=>{if(t.codigo)PR[String(t.codigo).toUpperCase()]=Math.round(Number(String(t.precio).replace(/[^0-9.]/g,"")))||0;});
+    const filas=objs(wb.Sheets[hoja]);
+    PAGO=filas.filter(t=>t.medio_pago&&t.numero_pago).map(t=>`${t.medio_pago}: ${String(t.numero_pago).trim()}`);
+    const PR={}; filas.forEach(t=>{if(t.codigo)PR[String(t.codigo).toUpperCase()]=Math.round(Number(String(t.precio).replace(/[^0-9.]/g,"")))||0;});
     L=p.split("~").map(par=>{
       const i=par.lastIndexOf("-"); const cod=par.slice(0,i).toUpperCase(); const k=Number(par.slice(i+1))||0;
       const m=M[cod]; if(!m||!k) return null;
       const peso=nrmL(m.se_vende_por)==="peso"; const precio=PR[cod]||0;
       const nom=capL(m.producto)+(m.marca?" "+capL(m.marca):"");
       const pres=[capL(String(m.empaque||"").toLowerCase()),m.contenido,m.medida].filter(Boolean).join(" ");
-      const txt=peso?`${palabras(k)} (${gramos(k)}) de ${nom}`:`${k} × ${nom}${pres?" ("+pres+")":""}`;
-      return {txt, v:Math.round(precio*k), est:"hay", alt:"", altV:""};
+      return {nom:peso?nom:nom+(pres?" ("+pres+")":""), k, env:null, paso:peso?0.25:1, peso, pu:precio};
     }).filter(Boolean);
     $("#cargando").style.display="none";
     if(!L.length){ $("#s1").classList.remove("oculto"); return; }
