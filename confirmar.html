@@ -106,7 +106,6 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
     <p class="error" id="faltan"></p>
     <a class="btn verde" id="enviar" href="#" target="_blank" rel="noopener">Responder al cliente por WhatsApp</a>
     <details class="ver"><summary>Ver mensaje</summary><div class="resumen" id="msg"></div></details>
-    <button class="btn sec" id="otro" type="button">Revisar otro pedido</button>
   </section>
 </div>
 
@@ -116,6 +115,8 @@ const plata=v=>"$"+Math.round(v).toLocaleString("es-CO");
 const num=s=>Number(String(s||"").replace(/[^0-9]/g,""))||0;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let L=[]; let PAGO=[];
+const _q=new URLSearchParams(location.search);
+const CLIENTE={c:(_q.get("c")||"").replace(/\D/g,""), n:(_q.get("n")||"").trim()};
 
 function leer(texto){
   return texto.split(/\r?\n/).map(l=>l.trim()).filter(l=>/^[•\-\*]/.test(l)).map(l=>{
@@ -177,16 +178,16 @@ function calcular(){
   const pago=PAGO.length?"Puedes pagar en efectivo o por transferencia:\n"+PAGO.join("\n"):"¿Pagas en efectivo o por transferencia?";
   let msg;
   if(!cambios.length && !obsTxt){
-    msg="¡Hola! Tu pedido está confirmado ✅\n"+pie+"\n\n"+pago;
+    msg="¡Hola"+(CLIENTE.n?" "+CLIENTE.n:"")+"! Tu pedido está confirmado ✅\n"+pie+"\n\n"+pago;
   } else {
-    msg="¡Hola! Revisamos tu pedido:\n"+(cambios.length?cambios.join("\n")+"\n":"")+
+    msg="¡Hola"+(CLIENTE.n?" "+CLIENTE.n:"")+"! Revisamos tu pedido:\n"+(cambios.length?cambios.join("\n")+"\n":"")+
       (obsTxt?`📝 ${obsTxt}\n`:"")+
       (cambios.length?"Lo demás va completo ✅\n":"")+"\n"+pie+
       "\n\n¿Lo confirmamos?\n"+pago;
   }
   $("#tot").textContent=plata(total);
   $("#msg").textContent=msg;
-  $("#enviar").href=waLink("",msg,"com.whatsapp.w4b"); ajustarDestino($("#enviar"));
+  $("#enviar").href=waLink(CLIENTE.c,msg,"com.whatsapp.w4b"); ajustarDestino($("#enviar"));
 }
 
 $("#leer").addEventListener("click",()=>{
@@ -206,7 +207,7 @@ $("#todos").addEventListener("change",e=>{ const on=e.target.checked; L.forEach(
 $("#enviar").addEventListener("click",e=>{ if(L.some(x=>x.env===null)){ e.preventDefault(); $("#faltan").scrollIntoView({behavior:"smooth",block:"center"}); } });
 $("#obs").addEventListener("input",calcular);
 $("#dom").addEventListener("input",calcular);
-$("#otro").addEventListener("click",()=>{
+$("#otro")&&$("#otro").addEventListener("click",()=>{
   L=[]; $("#todos").checked=false; $("#txt").value=""; $("#dom").value=""; $("#obs").value="";
   $("#s2").classList.add("oculto"); $("#s1").classList.remove("oculto"); $("#txt").focus();
 });
