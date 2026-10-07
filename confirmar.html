@@ -178,7 +178,7 @@ function calcular(){
   });
   total+=dom;
   const pie=(dom?`Domicilio: ${plata(dom)}\n`:"")+`Total: ${plata(total)}`;
-  const pago=PAGO.length?"Puedes pagar en efectivo o por transferencia:\n"+PAGO.join("\n"):"¿Pagas en efectivo o por transferencia?";
+  const pago=PAGO.length?"Puedes pagar en efectivo o por transferencia:\n"+PAGO.join("\n")+"\n\nSi pagas por transferencia, envíanos por aquí el pantallazo del pago 📸":"¿Pagas en efectivo o por transferencia? Si es por transferencia, envíanos por aquí el pantallazo del pago 📸";
   let msg;
   if(!cambios.length && !obsTxt){
     msg="¡Hola"+(CLIENTE.n?" "+CLIENTE.n:"")+"! Tu pedido está confirmado ✅\n"+pie+"\n\n"+pago;
