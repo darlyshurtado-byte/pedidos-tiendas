@@ -168,6 +168,11 @@ function armar(r,i){
 const P = RAW.map(armar);
 const cats=["Todo",...new Set(P.map(p=>p.c))];
 let cat="Todo", q="", cart={};
+/* El carrito queda guardado en el celular hasta que se pasa el pedido a WhatsApp */
+const CKEY="pedidos_carrito_"+(window.TIENDA||"");
+try{ const g=JSON.parse(localStorage.getItem(CKEY))||{}; P.forEach(p=>{ if(p.cod&&g[p.cod]>0) cart[p.id]=g[p.cod]; }); }catch(e){}
+function guardarCarrito(){ try{ const g={}; Object.entries(cart).forEach(([id,k])=>{ if(k>0&&P[id].cod) g[P[id].cod]=k; }); localStorage.setItem(CKEY,JSON.stringify(g)); }catch(e){} }
+function borrarCarritoGuardado(){ try{ localStorage.removeItem(CKEY); }catch(e){} }
 const $=s=>document.querySelector(s);
 const norm=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const plata=v=>"$"+v.toLocaleString("es-CO");
@@ -235,7 +240,7 @@ function pintarBarra(){
   $("#total").textContent=plata(total);
   const bd=$("#badge"); const prev=bd.textContent; bd.textContent=unidades; bd.classList.toggle("cero",!unidades);
   if(String(unidades)!==prev && unidades){ const c=$("#carro"); c.classList.remove("salta"); void c.offsetWidth; c.classList.add("salta"); }
-  actualizarEnlace();
+  actualizarEnlace(); guardarCarrito();
   $("#carrito").innerHTML=items.map(([id,k])=>`<li><span class="t">${qtyTxt(P[id],k)} ${esc(P[id].n)}${P[id].m?" "+esc(P[id].m):""}${P[id].g?"":" ("+esc(P[id].d)+")"}</span><b>${plata(Math.round(P[id].v*k))}</b><button class="b2" type="button" data-id="${id}" data-a="-1" aria-label="Quitar">−</button><button class="b2 m" type="button" data-id="${id}" data-a="1" aria-label="Agregar">+</button></li>`).join("");
 }
 
@@ -337,7 +342,7 @@ const cerrarModal=()=>modal.classList.remove("on");
 modal.addEventListener("click",e=>{ if(e.target===modal) cerrarModal(); });
 $("#mNo").onclick=cerrarModal;
 $("#mCamb").onclick=()=>{ cerrarModal(); if(!$("#extra").classList.contains("on")) toggleLista(); pintarDatos(true); $("#dNom").focus(); };
-$("#mOk").addEventListener("click",()=>{ recordarDir(DATOS.dir.trim()); setTimeout(cerrarModal,300); });
+$("#mOk").addEventListener("click",()=>{ recordarDir(DATOS.dir.trim()); borrarCarritoGuardado(); setTimeout(cerrarModal,300); });
 function recordarDir(d){ if(!d) return; const l=(DATOS.dirs||[]).filter(x=>x.toLowerCase()!==d.toLowerCase()); l.unshift(d); DATOS.dirs=l.slice(0,3); guardarDatos(DATOS); }
 function pintarModal(){
   $("#mRes").innerHTML=`<b>${esc(DATOS.nom.trim())}</b><br>Celular: ${esc(DATOS.cel.trim())}`;

@@ -73,6 +73,8 @@ textarea.obs{min-height:60px;border:1.5px solid var(--linea);border-radius:10px;
 .error{color:var(--rojo);font-size:15px;margin-top:8px}
 .oculto{display:none}
 button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--mango);outline-offset:2px}
+.aviso{background:#FFE58A;border:3px solid #E0A800;color:#1C2321;border-radius:14px;padding:12px;margin:6px 0 12px;font-size:18px;font-weight:800;line-height:1.3;text-align:center}
+.aviso b{color:#B3261E;font-size:20px}
 </style>
 </head>
 <body>
@@ -104,7 +106,8 @@ button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{
     <div class="total"><span>Total para el cliente</span><b id="tot">$0</b></div>
 
     <p class="error" id="faltan"></p>
-    <a class="btn verde" id="enviar" href="#" target="_blank" rel="noopener">Responder al cliente por WhatsApp</a>
+    <p class="aviso">⚠️ ¡IMPORTANTE! No olvides presionar <b>ENVIAR ➤</b> en tu pantalla de WhatsApp para responderle al cliente</p>
+    <a class="btn verde" id="enviar" href="#" target="_blank" rel="noopener">Pasar respuesta a WhatsApp</a>
     <details class="ver"><summary>Ver mensaje</summary><div class="resumen" id="msg"></div></details>
   </section>
 </div>
