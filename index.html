@@ -139,6 +139,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
 .nuevaDir input.mal{border-color:#C0392B}
 .modal .res{margin-bottom:10px}
 .modal .caja2{max-height:92vh;overflow:auto}
+.paso2{margin:6px 0 2px;text-align:center;font-size:14px;color:var(--gris)}
 </style>
 </head>
 <body>
@@ -324,7 +325,8 @@ modal.innerHTML=`<div class="caja2" role="dialog" aria-modal="true" aria-labelle
   <p class="res" id="mRes"></p>
   <p class="dq">¿A cuál dirección lo enviamos?</p>
   <div id="mDirs"></div>
-  <a class="enviar" id="mOk" href="#">Confirmar y enviar</a>
+  <a class="enviar" id="mOk" href="#">Confirmar y abrir WhatsApp</a>
+  <p class="paso2">En WhatsApp toca la flecha ➤ para enviar el pedido.</p>
   <button class="sec2" type="button" id="mCamb">Cambiar mis datos</button>
   <button class="sec2" type="button" id="mNo">Volver</button></div>`;
 document.body.appendChild(modal);
